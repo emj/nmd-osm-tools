@@ -9,7 +9,7 @@ Nationella Marktäckedata (NMD) of Sweden.
 * `process-osmxml.py` - fix warnings and simplify XML obtained on an intermediate
   stage of data import
 
-== Data flow import overview ==
+### Data flow import overview
 
 1. Import of raster and remapping of some value that will have identical tags in the end.
 2. Raster undergoes vectorization with GDAL tools.
@@ -20,7 +20,7 @@ Nationella Marktäckedata (NMD) of Sweden.
 6. Simplification of large multipolygon outer ways to keep them under 1000 of nodes with different JOSM filters.
 7. Manual splitting of larger multipolygons to keep them under 1000 nodes.
 
-== References ==
+### References
 
 * Import plan: [wiki](https://wiki.openstreetmap.org/wiki/WikiProject_Sweden/NMD_2018_Import_Plan)
 * Mailing list discussion: [link](https://lists.openstreetmap.org/pipermail/talk-se/2019-March/003537.html)
