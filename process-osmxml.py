@@ -297,6 +297,13 @@ def main(argv):
     # remove references to them from relations
     # TODO looks logical to make it a part of mark_unused_items()
 
+    # Stage 3.5: merge ways which have identical nodes.
+    # It is an frequent situation to have one polygon without tags but with
+    # inner role in a multipolygon relation, and another multipolygon with
+    # tags but outside any relation and having all its nodes matching. This
+    # creates a warning in JOSM. Fix it here, save some manual labor.
+    # TODO write me
+
     # Stage 4: merge all nodes that have same coordinates
     (duplicate_nodes, replacement_map) = find_duplicate_nodes(root)
     for node in duplicate_nodes:
