@@ -34,8 +34,12 @@ def main(argv):
     ysize = band.YSize
 
     input_array = band.ReadAsArray()
-    input_tiff = None
-    band = None
+
+    # NOTE Cannot clean up resources for input data because apparently there are
+    # alive references to them from output data (according to where GDB
+    # shows it crashes if you uncomment two following lines)
+#    input_tiff = None
+#    band = None
 
 
     # Remap specific pixel values that will have identical tags
@@ -55,6 +59,7 @@ def main(argv):
     # TODO: I feel like making a copy of the array here would lead to twice
     # the memory consumption. But I failed to perform an in-place data update.
     # Someone who knows NumPy better than me, please fix this.
+
     output_array = numpy.copy(input_array)
     for k, v in remap_table.items(): output_array[input_array == k] = v
 
