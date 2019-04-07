@@ -171,7 +171,6 @@ def mark_unused_items(root):
     junk_ways = list()
     junk_nodes = list()
 
-#    import pdb; pdb.set_trace()
     for rel in root.iter('relation'):
         # Relations are only useful if they have good tags
         rel_useful = item_has_k(rel, 'source')
@@ -270,6 +269,65 @@ def remove_self_touching_nodes(root):
     print("Repeated nodes count: %d" % total_duplicates,
           file = sys.stderr)
 
+def concatenate_list(inl):
+    result= ''
+    for item in inl:
+        result += item
+    return result
+
+def find_equal_ways(root):
+    # Find all pairs of ways that have matching nodes.
+    # Copy tags between them.
+    # Return a list of redundant ways
+
+    # In the algorithm below we consider two ways equal if sets of their
+    # nodes are the same. This is not correct in cases of repeating nodes,
+    # self-intersecting ways etc. But for needs of this application it
+    # should be good enough.
+    # Additionally, it is assumed that up to two ways can be identical.
+    # A case when three or more ways are equal to each other will not be
+    # handled fully.
+    all_ways = dict()
+    duplicate_pairs = list()
+    for way in root.iter('way'):
+        nodes_refs = set()
+        for nd in way.iter('nd'):
+            ref_str = nd.attrib['ref'] # use string
+            nodes_refs.add(ref_str)
+        # create an unique key used to compare ways
+        way_key = concatenate_list(sorted(nodes_refs))
+        if way_key in all_ways:
+            duplicate_way = all_ways[way_key]
+            duplicate_pairs.append((way, duplicate_way))
+        else:
+            all_ways[way_key] = way
+    print("Equal way pairs count: %d" % len(duplicate_pairs), file = sys.stderr)
+    junk_ways = list()
+
+    for (way1, way2) in duplicate_pairs:
+        way1_tags = way1.findall('tag')
+        way2_tags = way2.findall('tag')
+
+#        way1_id = int(way1.attrib['id'])
+#        way2_id = int(way2.attrib['id'])
+#        print(">>> Merging ways %d and %d" % (way1_id, way2_id), file = sys.stderr)
+#        import pdb; pdb.set_trace()
+        assert ((len(way1_tags) != 0 and len(way2_tags) == 0)
+                or
+                (len(way1_tags) == 0 and len(way2_tags) != 0)
+                ), "Exactly one of equal ways is expected to hold tags"
+        # Current observation is that a way without tags actually belongs to
+        # a relation. Therefore, we choose to delete another way.
+        # Before deleting, copy tags from the victim node to the surviving one.
+        # TODO To check correctness it is required to go through all relations
+        # and check that nothing references the doomed way.
+        if len(way1_tags) == 0:
+            way1.extend(way2_tags)
+            junk_ways.append(way2)
+        else:
+            way2.extend(way1_tags)
+            junk_ways.append(way1)
+    return junk_ways
 
 def main(argv):
     if len(argv) != 2:
@@ -297,13 +355,6 @@ def main(argv):
     # remove references to them from relations
     # TODO looks logical to make it a part of mark_unused_items()
 
-    # Stage 3.5: merge ways which have identical nodes.
-    # It is an frequent situation to have one polygon without tags but with
-    # inner role in a multipolygon relation, and another multipolygon with
-    # tags but outside any relation and having all its nodes matching. This
-    # creates a warning in JOSM. Fix it here, save some manual labor.
-    # TODO write me
-
     # Stage 4: merge all nodes that have same coordinates
     (duplicate_nodes, replacement_map) = find_duplicate_nodes(root)
     for node in duplicate_nodes:
@@ -312,6 +363,15 @@ def main(argv):
 
     # Stage 5: remove intersections by removing nodes repeated in the same way
     remove_self_touching_nodes(root)
+
+    # Stage 6: merge ways which have identical nodes.
+    # It is an frequent situation to have one polygon without tags but with
+    # inner role in a multipolygon relation, and another polygon with
+    # tags but outside any relation and them having all its nodes matching.
+    # This creates a warning in JOSM. Fix it now, save some manual labor later.
+    junk_ways = find_equal_ways(root)
+    for way in junk_ways:
+        root.remove(way)
 
     print_result(tree)
 
