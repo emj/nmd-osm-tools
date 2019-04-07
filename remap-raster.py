@@ -66,7 +66,8 @@ def main(argv):
     # Open an output file and start forming its contents
     driver = gdal.GetDriverByName('GTiff')
 
-    output_tiff = driver.Create(output_name, xsize, ysize, 1, gdal.GDT_Byte)
+    output_tiff = driver.Create(output_name, xsize, ysize, 1, gdal.GDT_Byte,
+                                options=['COMPRESS=LZW'])
     output_tiff.SetGeoTransform(geotransform)
     output_tiff.SetProjection(projection)
     output_tiff.SetMetadata(metadata)
