@@ -33,7 +33,7 @@ def main(argv):
     xsize = band.XSize
     ysize = band.YSize
 
-    input_array = band.ReadAsArray()
+    pixel_data = band.ReadAsArray()
 
     # NOTE Cannot clean up resources for input data because apparently there are
     # alive references to them from output data (according to where GDB
@@ -56,12 +56,9 @@ def main(argv):
     remap_table[125] = 127
     remap_table[126] = 127
 
-    # TODO: I feel like making a copy of the array here would lead to twice
-    # the memory consumption. But I failed to perform an in-place data update.
-    # Someone who knows NumPy better than me, please fix this.
-
-    output_array = numpy.copy(input_array)
-    for k, v in remap_table.items(): output_array[input_array == k] = v
+    # Find all pixels to remap
+    for orginal_value, change_value in remap_table.items(): 
+        pixel_data[pixel_data == original_value] = change_value
 
     # Open an output file and start forming its contents
     driver = gdal.GetDriverByName('GTiff')
@@ -73,7 +70,7 @@ def main(argv):
     output_tiff.SetMetadata(metadata)
 
     output_band = output_tiff.GetRasterBand(1)
-    output_band.WriteArray(output_array)
+    output_band.WriteArray(pixel_data)
     output_band.SetMetadata(band_meta)
     output_band.SetDescription(band_descr)
     output_band.SetColorTable(band_ct)
