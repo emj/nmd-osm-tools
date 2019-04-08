@@ -308,25 +308,30 @@ def find_equal_ways(root):
         way1_tags = way1.findall('tag')
         way2_tags = way2.findall('tag')
 
-#        way1_id = int(way1.attrib['id'])
-#        way2_id = int(way2.attrib['id'])
 #        print(">>> Merging ways %d and %d" % (way1_id, way2_id), file = sys.stderr)
 #        import pdb; pdb.set_trace()
-        assert ((len(way1_tags) != 0 and len(way2_tags) == 0)
+
+        leave_one_way = True
+        if not ((len(way1_tags) != 0 and len(way2_tags) == 0)
                 or
                 (len(way1_tags) == 0 and len(way2_tags) != 0)
-                ), "Exactly one of equal ways is expected to hold tags"
+                ):
+            way1_id = int(way1.attrib['id'])
+            way2_id = int(way2.attrib['id'])
+            print("Warning ways %d and %d: Exactly one of equal ways is expected to hold tags" % (way1_id, way2_id), file=sys.stderr)
+            leave_one_way = False
         # Current observation is that a way without tags actually belongs to
         # a relation. Therefore, we choose to delete another way.
         # Before deleting, copy tags from the victim node to the surviving one.
         # TODO To check correctness it is required to go through all relations
         # and check that nothing references the doomed way.
-        if len(way1_tags) == 0:
-            way1.extend(way2_tags)
-            junk_ways.append(way2)
-        else:
-            way2.extend(way1_tags)
-            junk_ways.append(way1)
+        if leave_one_way:
+            if len(way1_tags) == 0:
+                way1.extend(way2_tags)
+                junk_ways.append(way2)
+            else:
+                way2.extend(way1_tags)
+                junk_ways.append(way1)
     return junk_ways
 
 def main(argv):
