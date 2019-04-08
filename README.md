@@ -11,12 +11,12 @@ Nationella Marktäckedata (NMD) of Sweden.
 
 ### Data flow import overview
 
-1. Import of raster and remapping of some value that will have identical tags in the end.
-2. Raster undergoes vectorization with GDAL tools.
-2. Smoothing of artifacts of rasterization with `v.generalize` filter of the GRASS toolset to make it look more natural.
+1. Import of raster and remapping of some value that will have identical tags in the end. `gdal_sieve` is used to remove tiny (4 pixels or less) groups of pixels.
+2. The raster image undergoes vectorization with GDAL tools.
+2. Smoothing of rasterization artefacts with `v.generalize` filters of the GRASS toolset to make it look more natural. Two algorithms are used successively to obtain the best result: Chaiken and Douglas-Pecker.
 3. Filtering out of irrelevant data: water, residential, roads etc. Mostly forests and meadows/grass are preserved.
-4. Automated removal of self-intersections and duplicate nodes.
-5. Removal of small objects (approximately less than 12 nodes and 120 meters in perimeter) to keep the high-frequency spatial noise low.
+4. Automated removal of certain types of self-intersections, merging of duplicate nodes.
+5. Automated removal of small objects (approximately less than 12 nodes and 120 meters in perimeter) to keep the high-frequency spatial noise low.
 6. Simplification of large multipolygon outer ways to keep them under 1000 of nodes with different JOSM filters.
 7. Manual splitting of larger multipolygons to keep them under 1000 nodes.
 
