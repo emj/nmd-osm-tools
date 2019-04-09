@@ -57,7 +57,7 @@ def main(argv):
     remap_table[126] = 127
 
     # Find all pixels to remap
-    for orginal_value, change_value in remap_table.items(): 
+    for original_value, change_value in remap_table.items(): 
         pixel_data[pixel_data == original_value] = change_value
 
     # Open an output file and start forming its contents
